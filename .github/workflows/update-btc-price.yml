@@ -1,0 +1,48 @@
+name: Update BTC Price File
+
+on:
+  schedule:
+    # 매 시간마다 실행
+    - cron: "0/5 * * * *"
+
+jobs:
+  update-file:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Fetch BTC price from Binance and update file
+      run: |
+        # 현재 시간 가져오기
+        TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
+        
+        # 바이낸스 API로 비트코인 가격 가져오기
+        BTC_PRICE=$(curl -s https://api.binance.com/api/v3/ticker/price\?symbol\=BTCUSDT | jq -r '.price')
+        
+        # 덮어쓸 파일 이름
+        FILENAME="btc_price_log.txt"
+
+        # 파일에 현재 시간과 비트코인 가격 기록
+        echo "Timestamp: $TIMESTAMP" > $FILENAME
+        echo "BTC Price (USDT): $BTC_PRICE" >> $FILENAME
+
+        # 생성된 파일 내용 출력
+        echo "Updated file content:"
+        cat $FILENAME
+
+    - name: Commit and push changes
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # Git 설정
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        
+        # 변경 사항 추가
+        git add btc_price_log.txt
+        
+        # 변경 사항 커밋 및 푸시
+        git commit -m "Update BTC price log at $(date "+%Y-%m-%d %H:%M:%S")"
+        git push
