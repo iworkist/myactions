@@ -3,7 +3,7 @@ name: Update BTC Price File
 on:
   schedule:
     # 매 시간마다 실행
-    - cron: "0/5 * * * *"
+    - cron: "*/1 * * * *"
 
 jobs:
   update-file:
